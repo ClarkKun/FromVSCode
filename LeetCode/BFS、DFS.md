@@ -1,5 +1,13 @@
-# BFS
+# BFS与DFS
+
+## B定义
+### BFS
 广度优先遍历类似于二叉树的层次遍历，使用队列来存储遍历过的值，再从队列中取值向下层遍历，即不断地向外层进行遍历
+
+### DFS
+>深度优先搜索算法（Depth First Search，简称DFS）：一种用于遍历或搜索树或图的算法。 沿着树的深度遍历树的节点，尽可能深的搜索树的分支。当节点v的所在边都己被探寻过或者在搜寻时结点不满足条件，搜索将回溯到发现节点v的那条边的起始节点。整个进程反复进行直到所有节点都被访问为止。属于盲目搜索,最糟糕的情况算法时间复杂度为O(!n)。
+DFS借助栈来回溯状态
+
 ## 题目
 ### 1.腐烂的橘子
 >链接：https://leetcode-cn.com/problems/rotting-oranges/  
@@ -68,6 +76,91 @@ class Solution {
         }
 
         return ans;
+    }
+}
+```
+
+
+### 2.岛屿的最大面积
+
+
+### 3.水壶问题
+>有两个容量分别为 x升 和 y升 的水壶以及无限多的水。请判断能否通过使用这两个水壶，从而可以得到恰好 z升 的水？  
+如果可以，最后请用以上水壶中的一或两个来盛放取得的 z升水。  
+你允许：  
+装满任意一个水壶  
+清空任意一个水壶  
+从一个水壶向另外一个水壶倒水，直到装满或者倒空    
+输入: x = 3, y = 5, z = 4  
+输出: True  
+链接：https://leetcode-cn.com/problems/water-and-jug-problem
+
+题解：
+https://leetcode-cn.com/problems/water-and-jug-problem/solution/tu-jie-bfs-c-jie-zhu-unordered_set-queue-shi-xian-/
+
+```java
+import java.util.*;
+
+/**
+ * 水量的最终状态由x和y两个参数决定，而x与y也有固定的规律
+ * 根据条件：可以装满任意一个水壶；
+ * 可以清空任意一个水壶；
+ * 可以从一个水壶向另一个水壶倒水，直到倒满或倒空
+ * 由此，比如容量为1，2的两个水壶，状态有：
+ * (0,0),(1,0)
+ * (0,1),(1,1)
+ * (1,2),(0,2)
+ * 使用BFS来完成这个操作
+ * （BFS使用一个Queue和一个Set，Queue用来记录遍历的路径，Set用来消除重复遍历）
+ * （DFS使用一个Stack和一个Set，与BFS类似，只是注重纵深，BFS更注重广度）
+ */
+class Solution {
+    public boolean canMeasureWater(int x, int y, int z) {
+        if (z == 0) {
+            return true;
+        }
+        if (x + y < z) {
+            return false;
+        }
+        //使用Map.Entry来存储每一个状态
+        Queue<Map.Entry<Integer, Integer>> queue = new LinkedList<>();
+        Set<Map.Entry<Integer, Integer>> set = new HashSet<>();
+        //初始状态为0，0
+        AbstractMap.SimpleEntry<Integer, Integer> start = new AbstractMap.SimpleEntry<Integer, Integer>(0, 0);
+        ((LinkedList<Map.Entry<Integer, Integer>>) queue).add(start);
+
+        while (!queue.isEmpty()) {
+            Map.Entry<Integer, Integer> curEntry = queue.poll();
+            int curX = curEntry.getKey();
+            int curY = curEntry.getValue();
+            if (curX + curY == z || curX == z || curY == z) {
+                return true;
+            }
+            if (curX == 0) {
+                addToQueue(queue, set, new AbstractMap.SimpleEntry<>(x, curY));
+            }
+            if (curY == 0) {
+                addToQueue(queue, set, new AbstractMap.SimpleEntry<>(curX, y));
+            }
+            if (curX < x) {
+                addToQueue(queue, set, new AbstractMap.SimpleEntry<>(curX, 0));
+            }
+            if (curY < y) {
+                addToQueue(queue, set, new AbstractMap.SimpleEntry<>(0, curY));
+            }
+            int offset = Math.min(curX, y - curY);
+            addToQueue(queue, set, new AbstractMap.SimpleEntry<>(curX - offset, curY + offset));
+            offset = Math.min(curY, x - curX);
+            addToQueue(queue, set, new AbstractMap.SimpleEntry<>(curX + offset, curY - offset));
+        }
+        return false;
+    }
+
+    public void addToQueue(Queue<Map.Entry<Integer, Integer>> queue, Set<Map.Entry<Integer, Integer>> set, Map.Entry<Integer, Integer> curEntry) {
+        if (!set.contains(curEntry)) {
+            set.add(curEntry);
+            queue.add(curEntry);
+        }
     }
 }
 ```
